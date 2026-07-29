@@ -1,6 +1,8 @@
 name: Banking Job Alert
 
 on:
+  schedule:
+    - cron: "0 */3 * * *"
   workflow_dispatch:
 
 jobs:
@@ -21,8 +23,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Script
+      - name: Run Job Scanner
         run: python jobs.py
+
+      - name: Send Telegram Test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python notifier.py
 
       - name: Upload CSV
         uses: actions/upload-artifact@v4
