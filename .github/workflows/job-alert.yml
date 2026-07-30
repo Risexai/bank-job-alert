@@ -5,6 +5,9 @@ on:
     - cron: "0 */3 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -12,28 +15,39 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Packages
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Job Scanner
-        run: python jobs.py
-
-      - name: Send Telegram Test
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python notifier.py
+        run: python jobs.py
 
       - name: Upload CSV
         uses: actions/upload-artifact@v4
         with:
-          name: jobs
-          path: jobs.csv
+          name: banking-jobs
+          path: data/jobs.csv
+
+      - name: Commit Updated Files
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
+
+          git add data/jobs.csv
+          git add data/posted_jobs.json
+
+          git diff --cached --quiet || git commit -m "Update job database"
+
+          git push
