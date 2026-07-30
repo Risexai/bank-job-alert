@@ -3,7 +3,8 @@ import os
 import pandas as pd
 
 from notifier import send_job
-from collectors.remoteok import fetch_jobs
+from collectors.remoteok import fetch_jobs as remoteok_jobs
+from collectors.remotive import fetch_jobs as remotive_jobs
 
 # Load keywords
 with open("keywords.txt", "r", encoding="utf-8") as f:
@@ -28,7 +29,10 @@ else:
 print("Fetching jobs from Remote OK...")
 
 try:
-    all_jobs = fetch_jobs()
+    all_jobs = []
+
+all_jobs.extend(remoteok_jobs())
+all_jobs.extend(remotive_jobs())
 except Exception as e:
     print("Error fetching jobs:", e)
     all_jobs = []
