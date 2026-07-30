@@ -63,7 +63,7 @@ job_id = f"{job_data['company']}|{job_data['title']}|{job_data['link']}"
 
 if job_id not in posted_jobs:
     results.append(job_data)
-        })
+    
 
 df = pd.DataFrame(results)
 
