@@ -4,26 +4,36 @@ import requests
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-message = """
-🏦 <b>Bank Job Alert Test</b>
 
-✅ Congratulations!
+def send_job(job):
+    message = f"""
+🏦 <b>Remote Banking Job</b>
 
-Your Telegram integration is working successfully.
+🏢 <b>Company:</b> {job['company']}
 
-Next, we'll send real jobs from Mashreq and other banks automatically.
+💼 <b>Role:</b>
+{job['title']}
 
-- RiseX AI Banking Job Hunter
+📍 <b>Location:</b>
+{job['location']}
+
+🏠 <b>Mode:</b>
+{job['mode']}
+
+🔗 <b>Apply:</b>
+{job['link']}
+
+━━━━━━━━━━━━━━
+📢 Join @IndiaJobAlerts26
 """
 
-url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-payload = {
-    "chat_id": CHAT_ID,
-    "text": message,
-    "parse_mode": "HTML"
-}
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": False
+    }
 
-response = requests.post(url, data=payload)
-
-print(response.text)
+    requests.post(url, data=payload)
