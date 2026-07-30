@@ -71,11 +71,15 @@ if not df.empty:
 
     # Send each job to Telegram
     for job in results:
-        send_job(job)
+    send_job(job)
+
+    job_id = f"{job['company']}|{job['title']}|{job['link']}"
+    posted_jobs.append(job_id)
 
     # Save CSV
     df.to_csv("data/jobs.csv", index=False)
-
+with open(posted_file, "w", encoding="utf-8") as f:
+    json.dump(posted_jobs, f, indent=2)
     print(df)
     print(f"\nFound {len(df)} matching jobs.")
 
