@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-
+from notifier import send_job
 from collectors.remoteok import fetch_jobs
 
 # Load keywords
@@ -54,8 +54,16 @@ for job in all_jobs:
 df = pd.DataFrame(results)
 
 if not df.empty:
+
+    # Send each job to Telegram
+    for job in results:
+        send_job(job)
+
+    # Save CSV
     df.to_csv("data/jobs.csv", index=False)
+
     print(df)
     print(f"\nFound {len(df)} matching jobs.")
+
 else:
     print("No matching banking jobs found.")
