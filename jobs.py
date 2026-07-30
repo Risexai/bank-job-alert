@@ -26,14 +26,21 @@ if os.path.exists(posted_file):
 else:
     posted_jobs = []
 
-print("Fetching jobs from Remote OK...")
+print("Fetching jobs...")
+
+all_jobs = []
 
 try:
-    all_jobs = []
-
-all_jobs.extend(remoteok_jobs())
-all_jobs.extend(remotive_jobs())
+    all_jobs.extend(remoteok_jobs())
+    print("✓ Remote OK loaded")
 except Exception as e:
+    print("Remote OK failed:", e)
+
+try:
+    all_jobs.extend(remotive_jobs())
+    print("✓ Remotive loaded")
+except Exception as e:
+    print("Remotive failed:", e)
     print("Error fetching jobs:", e)
     all_jobs = []
 
