@@ -6,25 +6,40 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
 def send_job(job):
+
+    company = job.get("company", "Unknown")
+    title = job.get("title", "Unknown")
+    location = job.get("location", "Remote")
+    mode = job.get("mode", "Remote")
+    link = job.get("link", "")
+    date = job.get("date", "Today")
+
     message = f"""
-🏦 <b>Remote Banking Job</b>
+🏦 <b>REMOTE BANKING JOB</b>
 
-🏢 <b>Company:</b> {job['company']}
+💼 <b>Role</b>
+{title}
 
-💼 <b>Role:</b>
-{job['title']}
+🏢 <b>Company</b>
+{company}
 
-📍 <b>Location:</b>
-{job['location']}
+📍 <b>Location</b>
+{location}
 
-🏠 <b>Mode:</b>
-{job['mode']}
+🏠 <b>Work Mode</b>
+{mode}
 
-🔗 <b>Apply:</b>
-{job['link']}
+📅 <b>Posted</b>
+{date}
 
-━━━━━━━━━━━━━━
-📢 Join @IndiaJobAlerts26
+🔗 <b>Apply Now</b>
+{link}
+
+━━━━━━━━━━━━━━━━━━━
+
+📢 <b>Join @India_JobAlerts26</b>
+
+#RemoteJobs #BankJobs #HybridJobs #WFHJobs
 """
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -33,7 +48,9 @@ def send_job(job):
         "chat_id": CHAT_ID,
         "text": message,
         "parse_mode": "HTML",
-        "disable_web_page_preview": False
+        "disable_web_page_preview": False,
     }
 
-    requests.post(url, data=payload)
+    response = requests.post(url, data=payload, timeout=30)
+
+    print(response.text)
