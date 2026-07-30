@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Remote OK",
+    "enabled": true
+  },
+  {
+    "name": "Remotive",
+    "enabled": true
+  },
+  {
+    "name": "Greenhouse",
+    "enabled": false
+  },
+  {
+    "name": "Workday",
+    "enabled": false
+  },
+  {
+    "name": "Oracle",
+    "enabled": false
+  },
+  {
+    "name": "SuccessFactors",
+    "enabled": false
+  }
+]
