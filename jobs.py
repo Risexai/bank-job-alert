@@ -38,7 +38,7 @@ for job in all_jobs:
     matched = (
         any(word in title for word in keywords)
         or any(word in tags for word in keywords)
-        or any(bank.lower() in company for bank in banks.keys())
+        or any(bank["name"].lower() in company for bank in banks)
     )
 
     if matched:
