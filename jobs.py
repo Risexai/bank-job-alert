@@ -1,5 +1,7 @@
 import json
+import os
 import pandas as pd
+
 from notifier import send_job
 from collectors.remoteok import fetch_jobs
 
@@ -24,7 +26,13 @@ except Exception as e:
     all_jobs = []
 
 results = []
+posted_file = "data/posted_jobs.json"
 
+if os.path.exists(posted_file):
+    with open(posted_file, "r", encoding="utf-8") as f:
+        posted_jobs = json.load(f)
+else:
+    posted_jobs = []
 for job in all_jobs:
     title = job.get("title", "").lower()
     company = job.get("company", "").lower()
@@ -42,13 +50,19 @@ for job in all_jobs:
     )
 
     if matched:
-        results.append({
-            "company": job["company"],
-            "title": job["title"],
-            "location": job["location"],
-            "mode": job["mode"],
-            "link": job["link"],
-            "date": job["date"]
+        job_data = {
+    "company": job["company"],
+    "title": job["title"],
+    "location": job["location"],
+    "mode": job["mode"],
+    "link": job["link"],
+    "date": job["date"]
+}
+
+job_id = f"{job_data['company']}|{job_data['title']}|{job_data['link']}"
+
+if job_id not in posted_jobs:
+    results.append(job_data)
         })
 
 df = pd.DataFrame(results)
