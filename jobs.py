@@ -1,100 +1,89 @@
 import json
-import os
-import pandas as pd
 
+from config import ENABLE_REMOTEOK, ENABLE_REMOTIVE
+from storage import load_posted_jobs, save_posted_jobs, save_jobs
+from filters import is_matching, is_ignored
 from notifier import send_job
+
 from collectors.remoteok import fetch_jobs as remoteok_jobs
 from collectors.remotive import fetch_jobs as remotive_jobs
 
-# Load keywords
+
+# -----------------------
+# Load configuration files
+# -----------------------
+
 with open("keywords.txt", "r", encoding="utf-8") as f:
-    keywords = [k.strip().lower() for k in f if k.strip()]
+    keywords = [x.strip().lower() for x in f if x.strip()]
 
-# Load ignored words
 with open("ignore.txt", "r", encoding="utf-8") as f:
-    ignored = [k.strip().lower() for k in f if k.strip()]
+    ignored = [x.strip().lower() for x in f if x.strip()]
 
-# Load banks
 with open("banks.json", "r", encoding="utf-8") as f:
     banks = json.load(f)
 
-posted_file = "data/posted_jobs.json"
 
-if os.path.exists(posted_file):
-    with open(posted_file, "r", encoding="utf-8") as f:
-        posted_jobs = json.load(f)
-else:
-    posted_jobs = []
-
-print("Fetching jobs...")
+posted_jobs = load_posted_jobs()
 
 all_jobs = []
 
-try:
-    all_jobs.extend(remoteok_jobs())
-    print("✓ Remote OK loaded")
-except Exception as e:
-    print("Remote OK failed:", e)
+# -----------------------
+# Collect Jobs
+# -----------------------
 
-try:
-    all_jobs.extend(remotive_jobs())
-    print("✓ Remotive loaded")
-except Exception as e:
-    print("Remotive failed:", e)
-    print("Error fetching jobs:", e)
-    all_jobs = []
+if ENABLE_REMOTEOK:
+    try:
+        print("Loading Remote OK...")
+        all_jobs.extend(remoteok_jobs())
+    except Exception as e:
+        print("Remote OK:", e)
+
+if ENABLE_REMOTIVE:
+    try:
+        print("Loading Remotive...")
+        all_jobs.extend(remotive_jobs())
+    except Exception as e:
+        print("Remotive:", e)
+
+
+# -----------------------
+# Filter Jobs
+# -----------------------
 
 results = []
 
 for job in all_jobs:
 
-    title = job.get("title", "").lower()
-    company = job.get("company", "").lower()
-    tags = " ".join(job.get("tags", [])).lower()
+    title = job.get("title", "")
 
-    if any(word in title for word in ignored):
+    if is_ignored(title, ignored):
         continue
 
-    matched = (
-        any(word in title for word in keywords)
-        or any(word in tags for word in keywords)
-        or any(bank["name"].lower() in company for bank in banks)
-    )
-
-    if not matched:
+    if not is_matching(job, keywords, banks):
         continue
 
-    job_data = {
-        "company": job.get("company", ""),
-        "title": job.get("title", ""),
-        "location": job.get("location", ""),
-        "mode": job.get("mode", "Remote"),
-        "link": job.get("link", ""),
-        "date": job.get("date", "")
-    }
-
-    job_id = f"{job_data['company']}|{job_data['title']}|{job_data['link']}"
+    job_id = f"{job.get('company')}|{job.get('title')}|{job.get('link')}"
 
     if job_id in posted_jobs:
         continue
 
-    results.append(job_data)
+    results.append(job)
     posted_jobs.append(job_id)
 
-df = pd.DataFrame(results)
 
-if not df.empty:
+# -----------------------
+# Telegram
+# -----------------------
 
-    for job in results:
-        send_job(job)
+for job in results:
+    send_job(job)
 
-    df.to_csv("data/jobs.csv", index=False)
 
-    with open(posted_file, "w", encoding="utf-8") as f:
-        json.dump(posted_jobs, f, indent=2)
+# -----------------------
+# Save Files
+# -----------------------
 
-    print(df)
-    print(f"Found {len(df)} new jobs.")
+save_jobs(results)
+save_posted_jobs(posted_jobs)
 
-else:
-    print("No new jobs found.")
+print(f"Finished. {len(results)} new jobs.")
